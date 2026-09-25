@@ -45,15 +45,19 @@ func (cfg *apiConfig) handlerUploadThumbnail(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	defer file.Close()
-	
-	contentType, _, err := mime.ParseMediaType(header.Header.Get("Content-Type"))
-	fileExtension:= strings.Split(contentType, "/")
+
+	mediaType, _, err := mime.ParseMediaType(header.Header.Get("Content-Type"))
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Unable to parse file extension", err)
+		respondWithError(w, http.StatusBadRequest, "Unable to parse content type header", err)
 		return
 	}
+	if mediaType != "image/jpeg" && mediaType != "image/png" {
+		respondWithError(w, http.StatusBadRequest, "Invalid file type", nil)
+		return
+	}
+	fileExtension := strings.Split(mediaType, "/")
 
-	assetPath := filepath.Join(cfg.assetsRoot, fmt.Sprintf("%s.%s", videoID.String(), fileExtension[1]))
+	assetPath := filepath.Join(cfg.assetsRoot, fmt.Sprintf("%s.%s", videoID.String(), fileExtension))
 	destFile, err := os.Create(assetPath)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Unable to create file", err)
@@ -67,7 +71,7 @@ func (cfg *apiConfig) handlerUploadThumbnail(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	thumbnailURL := fmt.Sprintf("http://localhost:%s/assets/%s.%s", cfg.port, videoID, fileExtension[1])
+	thumbnailURL := fmt.Sprintf("http://localhost:%s/assets/%s.%s", cfg.port, videoID, fileExtension)
 
 	videoDb, err := cfg.db.GetVideo(videoID)
 	if err != nil {
