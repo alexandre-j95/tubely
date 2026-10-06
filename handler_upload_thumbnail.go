@@ -62,7 +62,7 @@ func (cfg *apiConfig) handlerUploadThumbnail(w http.ResponseWriter, r *http.Requ
 	randomSlice := make([]byte, 32)
 	_, err = rand.Read(randomSlice)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Unable to create file",err)
+		respondWithError(w, http.StatusInternalServerError, "Unable to create file", err)
 		return
 	}
 	encoded := base64.RawURLEncoding.EncodeToString(randomSlice) + "." + fileExtension[1]
